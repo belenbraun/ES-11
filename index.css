@@ -227,7 +227,7 @@ h2 {
 } 
 }
  /*PARA CELULAR Y TABLET*/
-@media screen and (max-width: 1024px) {
+/*@media screen and (max-width: 1024px) {
 
 nav ul{ 
     list-style: none;
@@ -313,4 +313,4 @@ h2 {
     grid-row: 10;
 }
 
-}
+}*/
