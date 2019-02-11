@@ -222,9 +222,8 @@ h2 {
 }
 .gridbio {
     grid-template-columns: 1fr;
-    grid-template-rows: auto;
-
 } 
+
 }
  /*PARA CELULAR Y TABLET*/
 /*@media screen and (max-width: 1024px) {
