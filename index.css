@@ -185,7 +185,6 @@ p{
 nav ul{ 
     list-style: none;
     width: 100%;
-    max-width: 780px;
     position: relative;
 }
 nav li{
@@ -223,6 +222,7 @@ h2 {
 }
 .gridbio {
     grid-template-columns: 100%;
+    grid-template-rows: auto;
 
 } 
 .b1 {
@@ -264,12 +264,6 @@ h2 {
 .f5 {
     grid-column: 1;
     grid-row: 10;
-}
-.gridbio p{
-    font-size: 0.8rem;
-    line-height: 2px;
-    letter-spacing: 1px;
-    word-spacing: 2px;
 }
 }
  /*PARA CELULAR Y TABLET*/
@@ -358,10 +352,5 @@ h2 {
     grid-column: 1;
     grid-row: 10;
 }
-.gridbio p{
-    font-size: 0.8rem;
-    line-height: 2px;
-    letter-spacing: 1px;
-    word-spacing: 2px;
-}
+
 }
