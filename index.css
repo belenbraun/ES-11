@@ -208,11 +208,11 @@ li:hover ul#submenu {
 
 }
 #caratula {
-    max-width: 400px;
+    max-width: 780px;
 
 }
 #logo {
-    display: block;
+    display: none;
 }
 h2 {
     font-size: 1rem;
@@ -222,8 +222,9 @@ h2 {
 }
 .gridbio {
     grid-template-columns: 1fr;
-} 
+    grid-template-rows: auto;
 
+} 
 }
  /*PARA CELULAR Y TABLET*/
 /*@media screen and (max-width: 1024px) {
@@ -312,4 +313,4 @@ h2 {
     grid-row: 10;
 }
 
-}*/
+}
