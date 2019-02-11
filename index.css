@@ -186,7 +186,7 @@ nav li{
 }
 nav a{
     font-size: 0.8rem;
-    padding: 2px 2px;
+    padding: 5px 2px 5px 2px;
 }
 #submenu {
     left: 0;
