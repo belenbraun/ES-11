@@ -221,50 +221,10 @@ h2 {
 
 }
 .gridbio {
-    grid-template-columns: 100%;
+    grid-template-columns: 1fr;
     grid-template-rows: auto;
 
 } 
-.b1 {
-    grid-column: 1;
-    grid-row: 2;
-}
-.f1 {
-    grid-column: 1;
-    grid-row: 2;
-}
-.b2 {
-    grid-column: 1;
-    grid-row: 4;
-}
-.f2 {
-    grid-column: 1;
-    grid-row: 4;
-}
-.b3 {
-    grid-column: 1;
-    grid-row: 5;
-}
-.f3 {
-    grid-column: 1;
-    grid-row: 6;
-}
-.b4 {
-    grid-column: 1;
-    grid-row: 7;
-}
-.f4 {
-    grid-column: 1;
-    grid-row: 8;
-}
-.b5 {
-    grid-column: 1;
-    grid-row: 9;
-}
-.f5 {
-    grid-column: 1;
-    grid-row: 10;
-}
 }
  /*PARA CELULAR Y TABLET*/
 @media screen and (max-width: 1024px) {
