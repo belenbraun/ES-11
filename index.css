@@ -5,10 +5,7 @@ html {
     font-family: 'Special Elite', cursive;
     margin: 0;
 }
-
-
 /* Menú */
-
 nav ul, nav li{
     margin: 0;
     padding: 0;
@@ -42,7 +39,6 @@ li a:hover{
     background-color: black;
     color: white;
 }
-
 /*Submenu*/
 li a:hover{
     background-color: black;
@@ -59,7 +55,7 @@ li:hover ul#submenu {
     display: block;
     top: 69px; /*distancia arriba al menu */
     text-align: center;
-    font-size: 1.1rem;
+    font-size: 1rem;
     text-decoration: none;
     background: black;
 }
@@ -71,7 +67,6 @@ li:hover ul#submenu {
 #submenu a:hover {
     background: grey;
 }
-
 /* Cover*/
 #caratula {
     background-image: url("http://yesofcorsa.com/wp-content/uploads/2017/08/Ed-Sheeran-Wallpaper-1024x576.jpg");
@@ -92,7 +87,6 @@ li:hover ul#submenu {
     font-size: 4rem;
     z-index: 2;
 }
-
 /* Biografia */
 h2 {
     font-size: 2rem;
@@ -105,16 +99,16 @@ h2 {
 p{
     color: black;
 }
-
 .gridbio {
     display: grid;
     grid-template-columns: 50% 50%;
     grid-template-rows: auto;
     text-align: center;
     align-items: center;
+    justify-items: stretch;
+
 
 } 
-
 .b1 {
     grid-column: 1;
     grid-row: 1;
@@ -155,20 +149,17 @@ p{
     grid-column: 2;
     grid-row: 5;
 }
-
-
 .gridbio img {
         border: 1px solid #ddd;
         border-radius: 4px;
         padding: 5px;
         vertical-align: middle;
 }
-
 .gridbio p{
-    font-size: 0.8rem;
-    line-height: 20px;
-    letter-spacing: 2px;
-    word-spacing: 5px;
+    font-size: 0.6rem;
+    line-height: 10px;
+    letter-spacing: 1px;
+    word-spacing: 3px;
     text-align: center;
     vertical-align: middle;
 }
