@@ -208,11 +208,11 @@ li:hover ul#submenu {
 
 }
 #caratula {
-    max-width: 780px;
+    max-width: 400px;
 
 }
 #logo {
-    display: none;
+    display: block;
 }
 h2 {
     font-size: 1rem;
@@ -222,10 +222,7 @@ h2 {
 }
 .gridbio {
     grid-template-columns: 100%;
-    grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr;
-
 } 
-
 .b1 {
     grid-column: 1;
     grid-row: 1;
