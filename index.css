@@ -208,11 +208,11 @@ li:hover ul#submenu {
 
 }
 #caratula {
-    max-width: 780px;
+    max-width: 400px;
 
 }
 #logo {
-    display: none;
+    display: block;
 }
 h2 {
     font-size: 1rem;
