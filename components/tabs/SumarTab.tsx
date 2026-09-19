@@ -1,37 +1,42 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ACTIVITIES, getActivity } from "@/lib/activities";
-import { DEST_EMAIL, FRIENDS } from "@/lib/data";
-import type { PilarId } from "@/lib/types";
+import { fetchAllFriends } from "@/lib/supabase/friends";
+import { createAnonPost, createPost, uploadPostPhoto } from "@/lib/supabase/posts";
+import type { FriendProfile, PilarId } from "@/lib/types";
 
 const PILAR_OPTIONS = ACTIVITIES.filter((a) => !a.proposed);
 
-interface Draft {
+interface PostedPreview {
   pilar: PilarId;
   text: string;
-  recipient: string;
-  photoName: string | null;
+  recipientName: string | null;
   photoUrl: string | null;
 }
 
 export default function SumarTab({
   active,
+  authorId,
   authorName,
   prefillPilar,
   onConsumedPrefill,
 }: {
   active: boolean;
+  authorId: string;
   authorName: string;
   prefillPilar: PilarId | null;
   onConsumedPrefill: () => void;
 }) {
   const [pilar, setPilar] = useState<PilarId>(prefillPilar || PILAR_OPTIONS[0].id);
   const [text, setText] = useState("");
-  const [recipient, setRecipient] = useState("");
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [photoName, setPhotoName] = useState<string | null>(null);
-  const [posted, setPosted] = useState<Draft[]>([]);
+  const [recipientId, setRecipientId] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [friends, setFriends] = useState<FriendProfile[] | null>(null);
+  const [posting, setPosting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [posted, setPosted] = useState<PostedPreview[]>([]);
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -42,49 +47,73 @@ export default function SumarTab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefillPilar]);
 
+  useEffect(() => {
+    if (pilar === "carta" && friends === null) {
+      fetchAllFriends()
+        .then(setFriends)
+        .catch((err) => setError(err instanceof Error ? err.message : "No se pudo cargar."));
+    }
+  }, [pilar, friends]);
+
   const activity = getActivity(pilar);
   const isAnon = !!activity?.anonimo;
 
   function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setPhotoUrl(URL.createObjectURL(file));
-    setPhotoName(file.name);
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
   }
 
   function clearPhoto() {
-    setPhotoUrl(null);
-    setPhotoName(null);
+    setPhotoFile(null);
+    setPhotoPreview(null);
     if (fileInput.current) fileInput.current.value = "";
   }
 
-  function handlePost() {
-    if (!text.trim()) return;
-    setPosted((prev) => [{ pilar, text, recipient, photoName, photoUrl }, ...prev]);
-    setText("");
-    setRecipient("");
-    clearPhoto();
+  async function handlePost() {
+    if (!text.trim() || posting) return;
+    setPosting(true);
+    setError(null);
+    try {
+      let mediaUrl: string | null = null;
+      let recipientName: string | null = null;
+
+      if (isAnon) {
+        await createAnonPost({ pillar: pilar, text: text.trim() });
+      } else {
+        if (photoFile) mediaUrl = await uploadPostPhoto(authorId, photoFile);
+        if (pilar === "carta" && recipientId) {
+          recipientName = friends?.find((f) => f.id === recipientId)?.name || null;
+        }
+        await createPost({
+          pillar: pilar,
+          authorId,
+          authorName,
+          text: text.trim(),
+          mediaUrl,
+          recipientId: pilar === "carta" ? recipientId || null : null,
+        });
+      }
+
+      setPosted((prev) => [
+        { pilar, text: text.trim(), recipientName, photoUrl: mediaUrl || photoPreview },
+        ...prev,
+      ]);
+      setText("");
+      setRecipientId("");
+      clearPhoto();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo mandar. Probá de nuevo.");
+    } finally {
+      setPosting(false);
+    }
   }
 
-  function mailtoHref() {
-    const lines = [
-      `Pilar: ${activity?.tag || pilar}`,
-      isAnon ? "Autora: (anónimo — no incluyas tu nombre en el mail si querés que quede así)" : `Autora: ${authorName}`,
-      pilar === "carta" && recipient ? `Para: ${recipient}` : "",
-      "",
-      text || "(sin texto)",
-      photoName ? "\n(Adjuntá la foto vos mismo/a en este mail — mailto no permite adjuntar automáticamente)" : "",
-    ].filter(Boolean);
-    const subject = `Sumar a LA GOTA — ${activity?.tag || pilar}`;
-    return (
-      "mailto:" +
-      encodeURIComponent(DEST_EMAIL) +
-      "?subject=" +
-      encodeURIComponent(subject) +
-      "&body=" +
-      encodeURIComponent(lines.join("\n"))
-    );
-  }
+  const recipientOptions = useMemo(
+    () => (friends || []).filter((f) => f.id !== authorId && f.name && !/^\(cargar/.test(f.name)),
+    [friends, authorId],
+  );
 
   return (
     <section id="tab-sumar" className={active ? "active" : undefined}>
@@ -119,12 +148,12 @@ export default function SumarTab({
           <select
             className="finput"
             style={{ marginTop: 10 }}
-            value={recipient}
-            onChange={(e) => setRecipient(e.target.value)}
+            value={recipientId}
+            onChange={(e) => setRecipientId(e.target.value)}
           >
             <option value="">¿Para quién es la carta?</option>
-            {FRIENDS.filter((f) => !/^\(cargar/.test(f.name)).map((f) => (
-              <option key={f.name} value={f.name}>
+            {recipientOptions.map((f) => (
+              <option key={f.id} value={f.id}>
                 {f.name}
               </option>
             ))}
@@ -142,11 +171,11 @@ export default function SumarTab({
 
         {!isAnon && (
           <div className="photo-input">
-            {photoUrl ? (
+            {photoPreview ? (
               <div className="photo-preview">
                 {/* preview de un File local vía object URL — no next/image */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photoUrl} alt="Foto seleccionada" />
+                <img src={photoPreview} alt="Foto seleccionada" />
                 <button type="button" className="photo-remove" onClick={clearPhoto}>
                   ✕ quitar
                 </button>
@@ -170,27 +199,26 @@ export default function SumarTab({
           </div>
         )}
 
-        <button className="go" type="button" onClick={handlePost}>
-          Sumar →
+        <button className="go" type="button" onClick={handlePost} disabled={posting}>
+          {posting ? "Mandando…" : "Sumar →"}
         </button>
-        <p className="note" style={{ marginTop: 8 }}>
-          Por ahora esto todavía no se guarda de verdad en ningún lado — se ve tal cual
-          va a quedar, pero el envío real llega con el próximo paso (conectar
-          Supabase). Mientras tanto, también podés{" "}
-          <a href={mailtoHref()}>mandarlo ya por mail</a>.
-        </p>
+        {error && (
+          <p className="note" style={{ color: "var(--primary-dark)", marginTop: 8 }}>
+            {error}
+          </p>
+        )}
       </div>
 
       {posted.length > 0 && (
         <div className="card">
-          <span className="badge chisme">Vista previa — todavía no guardado</span>
+          <span className="badge chisme">¡Sumado! ✓</span>
           {posted.map((p, i) => {
             const a = getActivity(p.pilar);
             return (
               <div className="draft-preview" key={i}>
                 <span className="week-activity-tag">
                   {a?.emoji} {a?.tag}
-                  {p.recipient ? ` → ${p.recipient}` : ""}
+                  {p.recipientName ? ` → ${p.recipientName}` : ""}
                 </span>
                 <p className="body" style={{ marginTop: 4 }}>
                   {p.text}

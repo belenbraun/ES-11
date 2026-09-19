@@ -41,8 +41,13 @@ create table if not exists friends (
   electro text,
   favorita text,
   random_fact text,
-  -- para el magic link / auth liviana: el mail de cada amiga
+  -- para el magic link: el mail de cada amiga
   email text unique,
+  -- se completa recién cuando esa persona entra por primera vez con el
+  -- magic link (ver policies más abajo) — así se puede pre-cargar el
+  -- resto de los datos de una friend (nombre, fact, ilustración) sin
+  -- que todavía haya iniciado sesión ninguna vez.
+  auth_user_id uuid unique references auth.users (id) on delete set null,
   created_at timestamptz not null default now()
 );
 
@@ -141,11 +146,10 @@ create table if not exists push_subscriptions (
 );
 
 -- ---------------------------------------------------------------
--- Row Level Security — punto de partida, afinar en el paso de auth.
--- Idea general: lectura abierta al grupo (autenticado con magic link
--- o PIN de grupo), escritura de `anon_posts` abierta a la key anon
--- SIN exponer select (para que ni el front pueda listar por autor
--- porque no hay autor que listar).
+-- Row Level Security — auth = magic link de Supabase Auth.
+-- Idea general: lectura abierta al grupo (cualquier sesión autenticada
+-- ve a las 22), escritura de `anon_posts` abierta a la key anon SIN
+-- exponer nada que permita reconstruir quién lo mandó.
 -- ---------------------------------------------------------------
 alter table friends enable row level security;
 alter table posts enable row level security;
@@ -156,27 +160,63 @@ alter table push_subscriptions enable row level security;
 create policy "friends: lectura para el grupo" on friends
   for select using (true);
 
+-- "Reclamar" un perfil pre-cargado (auth_user_id todavía null, el mail
+-- coincide con el de la sesión) O actualizar el propio perfil ya
+-- reclamado. Es la misma policy para las dos operaciones porque Postgres
+-- evalúa `using` sobre la fila ANTES del update: en el claim todavía no
+-- tiene auth_user_id, en una edición posterior ya lo tiene.
+create policy "friends: reclamar o editar mi ficha" on friends
+  for update
+  using (auth_user_id = auth.uid() or (auth_user_id is null and email = auth.email()))
+  with check (auth_user_id = auth.uid());
+
+-- Si alguien entra con un mail que Belén todavía no precargó en
+-- `friends`, se crea su fila en el momento (self-signup).
+create policy "friends: crear mi propio registro" on friends
+  for insert
+  with check (auth_user_id = auth.uid());
+
 create policy "posts: lectura para el grupo" on posts
   for select using (true);
 
-create policy "posts: insertar autenticade" on posts
-  for insert with check (auth.role() = 'authenticated');
+-- Solo se puede postear como uno mismo (author_id = la friend ligada a
+-- mi sesión) — evita que alguien postee en nombre de otra.
+create policy "posts: insertar como uno mismo" on posts
+  for insert
+  with check (
+    auth.role() = 'authenticated'
+    and author_id in (select id from friends where auth_user_id = auth.uid())
+  );
 
+-- Se manda con la ANON key desde un cliente separado que nunca inició
+-- sesión (ver lib/supabase/anonClient.ts) — así ni siquiera viaja un
+-- JWT identificable en el request, más allá de que la tabla ya no
+-- tiene ninguna columna de autor.
 create policy "anon_posts: insertar sin auth" on anon_posts
   for insert with check (true);
 
--- Sin policy de "select" para anon_posts en el rol público: la lectura
--- del feed anónimo se sirve desde una función/endpoint server-side que
--- devuelve el texto sin ningún dato de quién lo escribió (que, al no
--- guardarse, no hay forma de filtrar de todos modos).
 create policy "anon_posts: lectura agregada" on anon_posts
   for select using (true);
 
 create policy "pillar_schedule: lectura para el grupo" on pillar_schedule
   for select using (true);
 
--- Asume friends.id == auth.users.id (magic link de Supabase Auth con
--- friends como tabla "profile" 1:1). Si en el paso de auth se decide
--- un PIN de grupo en vez de magic link, esta policy se reemplaza.
 create policy "push_subscriptions: cada quien la suya" on push_subscriptions
-  for all using (auth.uid() = friend_id) with check (auth.uid() = friend_id);
+  for all
+  using (friend_id in (select id from friends where auth_user_id = auth.uid()))
+  with check (friend_id in (select id from friends where auth_user_id = auth.uid()));
+
+-- ---------------------------------------------------------------
+-- Storage — fotos de "Sumar" (nunca para pilares anónimos: eso se
+-- valida en el front, no se sube nada en esos casos).
+-- ---------------------------------------------------------------
+insert into storage.buckets (id, name, public)
+values ('posts-media', 'posts-media', true)
+on conflict (id) do nothing;
+
+create policy "posts-media: lectura pública" on storage.objects
+  for select using (bucket_id = 'posts-media');
+
+create policy "posts-media: subir autenticade" on storage.objects
+  for insert
+  with check (bucket_id = 'posts-media' and auth.role() = 'authenticated');

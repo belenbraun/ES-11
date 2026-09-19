@@ -13,12 +13,21 @@ if (supabaseUrl && supabaseAnonKey) {
   );
 }
 
+/** true si hay proyecto de Supabase conectado (env vars presentes). */
+export function isSupabaseConfigured(): boolean {
+  return client !== null;
+}
+
 /**
- * Cliente Supabase para uso en el browser (anon key). Todavía no lo
- * consume ningún componente: Feed/Challenges/Profiles siguen leyendo
- * de lib/data.ts hasta que se conecten las tablas (ver supabase/schema.sql
- * y el roadmap del README). Tira un error explícito recién al llamarlo
- * sin configurar, para no romper el build/dev server sin env vars.
+ * Cliente Supabase "de sesión" para uso en el browser (anon key + la
+ * sesión de auth de quien está logueada). Todo lo autenticado —leer/
+ * editar mi ficha, postear en `posts`, subir fotos— pasa por acá.
+ *
+ * Para "spill the tea"/premios NO se usa este cliente — ver
+ * lib/supabase/anonClient.ts, que nunca tiene una sesión asociada.
+ *
+ * Tira un error explícito recién al llamarlo sin configurar, para no
+ * romper el build/dev server sin env vars.
  */
 export function getSupabase(): SupabaseClient {
   if (!client) {

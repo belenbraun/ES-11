@@ -1,18 +1,18 @@
-import type { FeedItem, Friend } from "./types";
+import type { FeedItem } from "./types";
 
 // ---------------------------------------------------------------
-// CONTENIDO — portado 1:1 desde la versión Artifact (gota-de-alegria.html).
-// Esto sigue siendo data de ejemplo/seed hasta que se conecte Supabase
-// (ver supabase/schema.sql y el roadmap en el README). Reemplazar/ampliar
-// cuando lleguen las respuestas reales del form o se migren estas listas
-// a las tablas `friends` / `posts`.
+// Con Supabase ya conectado, `friends` y `posts`/`anon_posts` son la
+// fuente real (ver lib/supabase/*). Lo que queda acá es solo:
+//   - AVATAR_COLORS: paleta para los avatares de iniciales.
+//   - FEED: contenido de ejemplo que se muestra únicamente si todavía
+//     no hay ningún post real (ver components/tabs/FeedTab.tsx).
 //
-// Los pilares/actividades semanales viven en lib/activities.ts (se
-// dejaron de mostrar como tab fija — ahora son la base de las
-// notificaciones rotativas).
+// La lista de las 22 (nombres, mails, fact, illustration_url) ya no
+// vive acá — se carga directo en la tabla `friends` de Supabase (ver
+// supabase/schema.sql). Belu ya tiene fila real con su ilustración en
+// public/profiles/belu.jpg; el resto se agrega a mano o se auto-crea
+// la primera vez que cada una entra con su magic link.
 // ---------------------------------------------------------------
-
-export const DEST_EMAIL = "belenbraun@gmail.com";
 
 // Paleta de colores para avatares (se asignan por índice)
 export const AVATAR_COLORS = [
@@ -24,41 +24,8 @@ export const AVATAR_COLORS = [
   "#E0577C",
 ];
 
-// Lista de las 22 — placeholder de ejemplo. Reemplazar con las reales
-// (o migrar a la tabla `friends` de Supabase). Belu ya tiene su
-// ilustración estilo Pascualina — el resto queda pendiente de cargar
-// en el mismo estilo.
-export const FRIENDS: Friend[] = [
-  {
-    name: "Belu",
-    fact: "La que arrancó todo esto por mail hace mil años",
-    illustrationUrl: "/profiles/belu.jpg",
-  },
-  { name: "(cargar amiga 2)" },
-  { name: "(cargar amiga 3)" },
-  { name: "(cargar amiga 4)" },
-  { name: "(cargar amiga 5)" },
-  { name: "(cargar amiga 6)" },
-  { name: "(cargar amiga 7)" },
-  { name: "(cargar amiga 8)" },
-  { name: "(cargar amiga 9)" },
-  { name: "(cargar amiga 10)" },
-  { name: "(cargar amiga 11)" },
-  { name: "(cargar amiga 12)" },
-  { name: "(cargar amiga 13)" },
-  { name: "(cargar amiga 14)" },
-  { name: "(cargar amiga 15)" },
-  { name: "(cargar amiga 16)" },
-  { name: "(cargar amiga 17)" },
-  { name: "(cargar amiga 18)" },
-  { name: "(cargar amiga 19)" },
-  { name: "(cargar amiga 20)" },
-  { name: "(cargar amiga 21)" },
-  { name: "(cargar amiga 22)" },
-];
-
-// Feed — EJEMPLOS de muestra para ver el formato final; se reemplazan
-// por las anécdotas/chismes reales que junten (o se leen de `posts`).
+// Feed — EJEMPLOS de muestra para ver el formato final; se muestran
+// solo mientras `posts`/`anon_posts` estén vacías en Supabase.
 export const FEED: FeedItem[] = [
   {
     type: "onthisday",

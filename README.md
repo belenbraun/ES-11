@@ -6,15 +6,16 @@ perfiles, con la estética diario íntimo/agenda de los 2000. Ver `brief-la-gota
 
 Esta es la reconstrucción como PWA real de la primera versión (un Claude Artifact
 100% estático). El diseño, copy y estructura de contenido de esa versión ya están
-validados — se portaron a componentes, ajustando navegación/onboarding según feedback
-de la usuaria en la segunda vuelta.
+validados — se portaron a componentes, ajustando navegación/onboarding/backend según
+las dos vueltas de feedback siguientes.
 
 ## Stack
 
 - **Next.js 14** (App Router) + TypeScript — frontend y futuras API routes/serverless
   functions para Web Push.
 - **Supabase** (Postgres + Auth + Storage) — backend compartido entre las 22, sin
-  depender de ninguna organización corporativa.
+  depender de ninguna organización corporativa. **Ya conectado** (auth, ficha, posts,
+  fotos) — ver "Conectar tu propio proyecto de Supabase" más abajo.
 - **PWA manual** — `public/manifest.webmanifest` + `public/sw.js` (service worker
   escrito a mano, sin `next-pwa`, para tener control directo sobre el manejo de
   Web Push).
@@ -25,116 +26,158 @@ de la usuaria en la segunda vuelta.
 4 tabs fijas (`components/TabBar.tsx`):
 
 - **Feed** — el diario + un card "Esta semana en LA GOTA" con las 3 actividades que
-  tocan (ver Notificaciones).
+  tocan (ver Notificaciones). Muestra posts reales de Supabase; mientras no haya
+  ninguno, muestra contenido de ejemplo.
 - **Mi perfil** — tu ilustración (si ya la tenés cargada) + una ficha editable en
-  cualquier momento, no solo en el onboarding.
-- **Pussies** — grid con las 22.
-- **Sumar** — composer único (elegís el pilar, escribís, sumás una foto si aplica).
+  cualquier momento, guardada en `friends`.
+- **Pussies** — grid con las 22, leído en vivo de `friends`.
+- **Sumar** — composer único (elegís el pilar, escribís, sumás una foto si aplica) que
+  postea de verdad a `posts` o `anon_posts`.
+
+## Auth: magic link por mail
+
+Se eligió **magic link** (no PIN de grupo): cada una pone su mail en la landing,
+Supabase le manda un link, entra sin contraseña (`lib/supabase/auth.ts`).
+
+Cómo se resuelve la identidad la primera vez que alguien entra
+(`components/AppShell.tsx`):
+
+1. ¿Ya existe una fila en `friends` con `auth_user_id` = esta sesión? → entra directo.
+2. Si no, ¿hay una fila pre-cargada por Belén con ese mismo mail (`email`) y ya tiene
+   un nombre real (no un placeholder)? → se "reclama" esa fila (se le setea
+   `auth_user_id`), hereda `fact`/`illustration_url`/ficha si ya estaban cargados.
+3. Si no hay nada pre-cargado (o el nombre es un placeholder), se le pregunta el
+   nombre una vez (`LandingNameStep`) y se crea la fila.
+
+**Limitación conocida de iOS/PWA con magic link:** si el mail se abre en Safari en vez
+de en la app instalada, la sesión queda en esa ventana de Safari, no en la PWA (es
+una limitación de cómo iOS particiona el storage entre la PWA instalada y el
+navegador, no algo que se pueda evitar desde el código). Recomendación práctica para
+las 22: abrir el mail *desde el celu donde está instalada la app*, idealmente tocando
+el link con la app ya abierta en background.
 
 ## Onboarding
 
 Pantalla completa (`components/LandingOnboarding.tsx`) con la estética de la
-ilustración de marca ("pequeñas cosas, grandes días"). Se muestra **una sola vez**
-por dispositivo (se guarda el nombre en `localStorage`); después de elegir nombre no
-vuelve a aparecer. Cualquier dato adicional (apodo, secreto, etc.) se completa
-después, desde "Mi perfil", y se puede volver a editar cuando quieras.
+ilustración de marca ("pequeñas cosas, grandes días"): pedir mail → mandar magic link
+→ (la primera vez) confirmar nombre. Se muestra una sola vez por sesión de Supabase;
+mientras haya sesión activa, no vuelve a aparecer. Cualquier dato adicional (apodo,
+secreto, etc.) se completa después, desde "Mi perfil", y se puede volver a editar
+cuando quieras.
 
 ## Notificaciones = actividades rotativas
 
-Los 6 pilares del brief (`lib/activities.ts`) ya no viven en una tab fija — son la
-base de las notificaciones: **3 por semana, rotando**. `getWeekActivities()` elige
+Los 6 pilares del brief (`lib/activities.ts`) no viven en una tab fija — son la base
+de las notificaciones: **3 por semana, rotando**. `getWeekActivities()` elige
 determinísticamente cuáles tocan según el número de semana ISO, así todas ven la
 misma "tanda" esa semana (clave para que la notificación push, cuando se conecte,
 sea consistente entre las 22). Con 6 confirmadas y 3 por semana, cada una vuelve
 cada dos semanas.
 
 Sumé 3 **propuestas nuevas** (marcadas `proposed: true`, fuera de la rotación hasta
-que las confirmes):
+que las confirmes): 🗳️ Encuesta relámpago, 📼 Cápsula del tiempo, 🎧 Playlist
+colectiva. Se activan cambiando `proposed` a `undefined`/`false` en
+`lib/activities.ts` (y `active` en el seed de `pillar_schedule`).
 
-- 🗳️ **Encuesta relámpago** — pregunta tipo A/B sobre el grupo, resultado agregado en
-  el feed.
-- 📼 **Cápsula del tiempo** — subir una foto vieja del grupo con un par de líneas.
-- 🎧 **Playlist colectiva** — cada una suma una canción a una playlist del mes.
+## Sumar (con foto) — ya guarda de verdad
 
-Si querés sumar alguna a la rotación real, se activa cambiando `proposed` a
-`undefined`/`false` en `lib/activities.ts` (y `active` en el seed de
-`pillar_schedule`).
+El composer de "Sumar" postea a Supabase de verdad:
 
-## Sumar (con foto)
-
-El composer de "Sumar" ya está completo en UI: elegís pilar, escribís, y si el pilar
-no es anónimo podés adjuntar una foto (con preview en el momento, antes de mandar).
-**Todavía no se guarda en ningún lado de verdad** — es intencional: la foto recién
-se sube a Supabase Storage cuando se conecte Supabase (paso 2 del roadmap). Mientras
-tanto, el composer también deja mandarlo por mail como plan B (sin la foto adjunta
-automática — eso no lo permite `mailto`, hay que adjuntarla a mano en el mail).
-
-Los pilares anónimos (spill the tea, premios) **no muestran la opción de subir
-foto** a propósito: una imagen podría de-anonimizar a quien lo manda.
+- Pilares con autor (diario, recomendaciones, cringe, carta) → `posts`, con la foto
+  (si hay) subida primero a Storage (`lib/supabase/posts.ts::uploadPostPhoto`) y su
+  URL pública guardada en `media_url`.
+- Pilares anónimos (spill the tea, premios) → `anon_posts`, **sin** `author_id` ni
+  ninguna columna que permita reconstruir el autor, y usando un cliente de Supabase
+  separado que nunca inició sesión (`lib/supabase/anonClient.ts`) para que ni el
+  request en sí lleve un JWT identificable. Por eso, a propósito, estos pilares no
+  muestran la opción de subir foto en el composer: una imagen podría de-anonimizar a
+  quien lo manda.
 
 ## Perfiles con ilustración
 
-Cada perfil puede tener una ilustración estilo Pascualina/agenda (`Friend.illustrationUrl`
-en `lib/data.ts`). Belu ya tiene la suya (`public/profiles/belu.jpg`) y se ve tanto en
-el grid de "Pussies" como en "Mi perfil". Las otras 21 quedan con el avatar de
-iniciales hasta que se sumen las ilustraciones — son piezas de arte por encargo/generadas
-a medida, no algo que la usuaria suba desde la app.
+Cada fila de `friends` puede tener `illustration_url` (estilo Pascualina/agenda).
+Belu ya tiene la suya (`public/profiles/belu.jpg`) cargada como seed inicial — ver
+"Conectar tu propio proyecto de Supabase" para el insert. Las otras 21 quedan con el
+avatar de iniciales hasta que se sumen las ilustraciones — son piezas de arte por
+encargo/generadas a medida, no algo que la usuaria suba desde la app.
 
-## Estado actual (esqueleto)
+## Conectar tu propio proyecto de Supabase
 
-- ✅ Proyecto Next.js + TypeScript funcionando, con las 4 tabs, landing de onboarding,
-  actividades rotativas y composer de Sumar con foto (preview local).
+1. Crear un proyecto en [supabase.com](https://supabase.com) (plan free alcanza).
+2. En **SQL Editor**, pegar y correr entero `supabase/schema.sql` — crea las tablas,
+   las policies de RLS y el bucket `posts-media`.
+3. En **Authentication → Providers**, confirmar que **Email** esté habilitado (viene
+   así por default). En **Authentication → URL Configuration**, agregar como
+   *Redirect URLs* tanto `http://localhost:3000` (para desarrollo) como la URL de
+   Vercel del paso 4 del roadmap, apenas exista.
+4. (Opcional pero recomendado) Precargar en `friends` a quienes ya tengan mail
+   confirmado, para que "hereden" nombre/fact/ilustración al entrar. Ejemplo para
+   Belu:
+   ```sql
+   insert into friends (name, email, fact, illustration_url)
+   values ('Belu', 'BELU@MAIL-REAL.COM',
+           'La que arrancó todo esto por mail hace mil años',
+           '/profiles/belu.jpg');
+   ```
+   Sin este paso, igual funciona: la primera vez que cada una entra con su magic
+   link, se le pregunta el nombre y se crea su fila sola.
+5. En **Project Settings → API**, copiar el **Project URL** y la **anon public key**
+   (esa es segura de compartir/pegar, está pensada para el cliente) a `.env.local`:
+   ```bash
+   cp .env.example .env.local
+   # completar NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY
+   ```
+   La **service role key** NO va acá (ni al front en general) — solo se necesita más
+   adelante para la función serverless de Web Push (paso 3 del roadmap).
+6. `npm run dev` y probar el login con tu propio mail.
+
+Sin `.env.local` configurado, la app muestra una pantalla de aviso en vez de romper
+(`AppShell.tsx`, fase `not-configured`) — sirve para tocar el resto del código sin
+tener un proyecto de Supabase a mano.
+
+## Estado actual
+
+- ✅ Auth por magic link, con "reclamo" de perfiles pre-cargados o auto-creación.
+- ✅ "Mi perfil" y "Pussies" leen/escriben de verdad en `friends`.
+- ✅ "Sumar" postea de verdad a `posts`/`anon_posts`, con subida de fotos a Storage.
+- ✅ Feed lee posts reales, con fallback a contenido de ejemplo mientras esté vacío.
+- ✅ Diseño de anonimato real para spill-the-tea/premios (tabla separada + cliente
+  sin sesión para esos inserts).
 - ✅ Manifest + service worker instalables, con manejo de `push`/`notificationclick`
   ya armado (falta conectarlo a un backend real que dispare notificaciones).
-- ✅ Esquema de Supabase propuesto en `supabase/schema.sql`, con el diseño de
-  anonimato real para "spill the tea" y "premios" (tabla `anon_posts` separada,
-  sin ninguna columna que permita reconstruir el autor), más columnas de ficha e
-  ilustración en `friends`.
-- ⏳ **Todavía no conectado**: Feed/Pussies siguen leyendo de `lib/data.ts`, y la
-  ficha de "Mi perfil" se guarda en `localStorage` (no en Supabase todavía). Es el
-  próximo paso.
-- ⏳ Auth liviana (magic link o PIN de grupo) — no implementada todavía.
-- ⏳ Subida real de fotos (Supabase Storage) y envío real de Web Push (VAPID +
-  función serverless que dispare por actividad activa) — el service worker ya sabe
-  recibir y mostrar el push, falta quién lo mande.
-- ⏳ Íconos reales de la PWA: hoy `public/icons/icon.svg` es un placeholder
-  (la gota con el gradiente de marca). Para que iOS muestre un ícono lindo en la
-  pantalla de inicio hace falta generar PNGs (`180x180` apple-touch-icon,
-  `192x192`/`512x512` para el manifest).
+- ⏳ Envío real de Web Push (VAPID + función serverless que dispare por actividad
+  activa) — el service worker ya sabe recibir y mostrar el push, falta quién lo
+  mande.
+- ⏳ Íconos reales de la PWA: hoy `public/icons/icon.svg` es un placeholder. Para que
+  iOS muestre un ícono lindo en la pantalla de inicio hace falta generar PNGs
+  (`180x180` apple-touch-icon, `192x192`/`512x512` para el manifest).
 - ⏳ Ilustraciones estilo Pascualina de las otras 21 pussies.
+- ⏳ Deploy a Vercel (paso 4 del roadmap).
 
 ## Correr en local
 
 ```bash
 npm install
-cp .env.example .env.local   # completar cuando exista el proyecto de Supabase
+cp .env.example .env.local   # ver "Conectar tu propio proyecto de Supabase"
 npm run dev
 ```
 
 Abrir `http://localhost:3000`.
 
-## Variables de entorno
-
-Ver `.env.example`. Mientras no exista un proyecto de Supabase, la app funciona
-igual (todo el contenido sale de `lib/data.ts`); `lib/supabase/client.ts` solo
-tira error si algo intenta usar `getSupabase()` sin las env vars configuradas.
-
 ## Roadmap (siguiendo el brief)
 
-1. **Esqueleto del proyecto** ← estamos acá (con nav/onboarding/notificaciones ya
-   ajustados a la segunda vuelta de feedback).
-2. **Meter Supabase**: crear el proyecto, correr `supabase/schema.sql`, migrar
-   `FRIENDS`/`FEED` de `lib/data.ts` a filas reales, mover la ficha de "Mi perfil"
-   de `localStorage` a la tabla `friends`, y conectar la subida de fotos de "Sumar"
-   a Supabase Storage. Definir auth liviana (magic link por mail vs. PIN de grupo
-   simple).
-3. **Web Push real**: generar claves VAPID, guardar suscripciones en
-   `push_subscriptions` desde el cliente (pedir permiso + `PushManager.subscribe`),
-   y armar la función serverless que dispara la notificación de las 3 actividades
-   de la semana (cron semanal que llame a `getWeekActivities`, o su equivalente en
-   `pillar_schedule`).
-4. **Deploy a Vercel** con el subdominio gratuito para probar entre las 22, y
-   decidir después si vale la pena comprar un dominio propio.
+1. ~~Esqueleto del proyecto~~ ✅
+2. ~~Meter Supabase~~ ✅ — schema, auth por magic link, ficha, posts y fotos ya
+   conectados de verdad.
+3. **Web Push real**: generar claves VAPID (`npx web-push generate-vapid-keys`),
+   guardar suscripciones en `push_subscriptions` desde el cliente (pedir permiso +
+   `PushManager.subscribe`), y armar la función serverless que dispara la
+   notificación de las 3 actividades de la semana (cron semanal que llame a
+   `getWeekActivities`, o su equivalente en `pillar_schedule`). Necesita la
+   `SUPABASE_SERVICE_ROLE_KEY` (solo server-side, nunca en el cliente).
+4. **Deploy a Vercel** con el subdominio gratuito para probar entre las 22 (agregar
+   esa URL a los Redirect URLs de Supabase Auth), y decidir después si vale la pena
+   comprar un dominio propio.
 5. **Íconos y splash screens** definitivos, e ilustraciones Pascualina de las 21
    pussies restantes.
 
