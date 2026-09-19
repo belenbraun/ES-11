@@ -25,6 +25,9 @@ export const metadata: Metadata = {
   title: "La Gota de Alegría",
   description: "El fucking grupito de las pussies 💅",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icons/icon.svg",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
