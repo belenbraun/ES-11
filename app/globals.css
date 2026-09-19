@@ -1,0 +1,482 @@
+/*
+  Paleta, tipografía y estética "diario íntimo / agenda de los 2000"
+  portadas 1:1 desde la versión Artifact (gota-de-alegria.html).
+  No rediseñar — ver brief-la-gota.md, sección "Identidad de marca".
+*/
+
+:root {
+  --bg: #fbf3e3;
+  --line: #cfe0ea;
+  --surface: #fffdf6;
+  --surface-alt: #fff6de;
+  --ink: #2b3a67;
+  --ink-soft: #6e7ca0;
+  --primary: #ff7fa8;
+  --primary-dark: #e85a88;
+  --primary-soft: #ffe3ee;
+  --accent: #ffd84d;
+  --accent-ink: #7a5b00;
+  --accent-soft: #fff3c4;
+  --purple: #b49ce8;
+  --border: #e7d6c2;
+  --tape: #fff1b8;
+  --shadow: 0 10px 22px -14px rgba(43, 58, 103, 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1a1f3d;
+    --line: #2b3266;
+    --surface: #222752;
+    --surface-alt: #272c5c;
+    --ink: #f1efff;
+    --ink-soft: #aeb3e0;
+    --primary: #ff9ebf;
+    --primary-dark: #ff7fa8;
+    --primary-soft: #3a2a45;
+    --accent: #ffe07a;
+    --accent-ink: #4a3900;
+    --accent-soft: #3b3320;
+    --purple: #c9b6ff;
+    --border: #363c74;
+    --tape: #4a4326;
+    --shadow: 0 10px 22px -12px rgba(0, 0, 0, 0.6);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #1a1f3d;
+  --line: #2b3266;
+  --surface: #222752;
+  --surface-alt: #272c5c;
+  --ink: #f1efff;
+  --ink-soft: #aeb3e0;
+  --primary: #ff9ebf;
+  --primary-dark: #ff7fa8;
+  --primary-soft: #3a2a45;
+  --accent: #ffe07a;
+  --accent-ink: #4a3900;
+  --accent-soft: #3b3320;
+  --purple: #c9b6ff;
+  --border: #363c74;
+  --tape: #4a4326;
+  --shadow: 0 10px 22px -12px rgba(0, 0, 0, 0.6);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: repeating-linear-gradient(var(--bg) 0 27px, var(--line) 27px 28px),
+    linear-gradient(var(--bg), var(--bg));
+  background-attachment: local, local;
+  color: var(--ink);
+  font-family: var(--font-patrick), var(--font-nunito), system-ui, sans-serif;
+  padding: 0 16px;
+  padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  max-width: 560px;
+  margin: 0 auto;
+  font-size: 1.02rem;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-caveat), cursive;
+  margin: 0;
+  font-weight: 700;
+}
+p {
+  margin: 0;
+}
+::selection {
+  background: var(--primary-soft);
+}
+
+/* header — tapa de cuaderno */
+header.top {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  background: var(--bg);
+  padding: 18px 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 20;
+  border-bottom: 3px dashed var(--border);
+}
+.logo-drop {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  transform: rotate(-6deg);
+}
+.brand-text {
+  position: relative;
+}
+.brand-text h1 {
+  font-weight: 700;
+  font-size: 2rem;
+  color: var(--primary-dark);
+  line-height: 0.95;
+  transform: rotate(-1.2deg);
+  display: inline-block;
+}
+.brand-text span {
+  display: block;
+  font-family: var(--font-patrick), cursive;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.02em;
+  margin-top: 2px;
+}
+
+/* install hint — nota adhesiva */
+.install-card {
+  background: var(--tape);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 12px 14px;
+  margin-top: 16px;
+  font-size: 0.9rem;
+  color: var(--ink);
+  transform: rotate(-0.6deg);
+  box-shadow: var(--shadow);
+}
+.install-card summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--ink);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-patrick), cursive;
+}
+.install-card summary::-webkit-details-marker {
+  display: none;
+}
+.install-card summary:before {
+  content: "📌";
+}
+.install-card ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  line-height: 1.55;
+  font-family: var(--font-patrick), cursive;
+}
+
+/* tabs */
+main {
+  padding-top: 6px;
+}
+section {
+  display: none;
+}
+section.active {
+  display: block;
+}
+
+/* card base — hoja de diario pegada con cinta */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 18px 18px 16px;
+  margin-top: 20px;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+.card:nth-child(odd) {
+  transform: rotate(-0.7deg);
+}
+.card:nth-child(even) {
+  transform: rotate(0.6deg);
+}
+.card::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 64px;
+  height: 22px;
+  background: var(--tape);
+  opacity: 0.9;
+  clip-path: polygon(4% 0, 96% 0, 100% 100%, 0 100%);
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-caveat), cursive;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 2px 12px;
+  border-radius: 2px;
+  margin-bottom: 10px;
+  transform: rotate(-2deg);
+  border: 1.5px dashed currentColor;
+}
+.badge.onthisday {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.badge.challenge {
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+}
+.badge.chisme {
+  background: var(--surface-alt);
+  color: var(--ink-soft);
+}
+
+.card .author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-caveat), cursive;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: #fff;
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1.5px var(--border);
+}
+.author .who {
+  font-family: var(--font-caveat), cursive;
+  font-weight: 700;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.author .when {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  font-family: var(--font-patrick), cursive;
+}
+.card p.body {
+  font-size: 1.02rem;
+  line-height: 1.5;
+  color: var(--ink);
+  font-family: var(--font-patrick), cursive;
+}
+.card img.pic {
+  width: 92%;
+  margin: 12px auto 0;
+  display: block;
+  border: 6px solid #fff;
+  box-shadow: var(--shadow);
+  transform: rotate(-1.5deg);
+}
+.reactions {
+  display: flex;
+  gap: 14px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  font-family: var(--font-patrick), cursive;
+}
+
+.cta {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary);
+  color: #3a0a1e;
+  font-family: var(--font-caveat), cursive;
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 8px 18px;
+  border-radius: 2px;
+  text-decoration: none;
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  cursor: pointer;
+}
+.cta.alt {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* profiles — fotos tipo polaroid */
+.grid-profiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 18px;
+}
+.profile-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 14px 10px 12px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  border-bottom-width: 22px;
+}
+.profile-card:nth-child(4n + 1) {
+  transform: rotate(-2deg);
+}
+.profile-card:nth-child(4n + 2) {
+  transform: rotate(1.5deg);
+}
+.profile-card:nth-child(4n + 3) {
+  transform: rotate(2deg);
+}
+.profile-card:nth-child(4n + 4) {
+  transform: rotate(-1.5deg);
+}
+.profile-card .avatar {
+  width: 58px;
+  height: 58px;
+  font-size: 1.5rem;
+  margin: 0 auto 8px;
+}
+.profile-card h3 {
+  font-size: 1.15rem;
+}
+.profile-card p {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin-top: 4px;
+  line-height: 1.35;
+  font-family: var(--font-patrick), cursive;
+}
+.pending {
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+/* empty note */
+.note {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  margin-top: 16px;
+  line-height: 1.5;
+  font-family: var(--font-patrick), cursive;
+}
+
+/* bottom nav — lomo de carpeta con separadores */
+nav.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--surface);
+  border-top: 3px dashed var(--border);
+  display: flex;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+  gap: 4px;
+  max-width: 560px;
+  margin: 0 auto;
+  z-index: 30;
+}
+nav.tabbar button {
+  flex: 1;
+  background: none;
+  border: none;
+  font-family: var(--font-caveat), cursive;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px;
+  border-radius: 8px;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+nav.tabbar button .ic {
+  font-size: 1.25rem;
+}
+nav.tabbar button.on {
+  color: var(--primary-dark);
+  background: var(--primary-soft);
+}
+
+/* onboarding modal — pagina de agenda */
+.veil {
+  position: fixed;
+  inset: 0;
+  background: rgba(27, 20, 10, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+}
+.sheet {
+  background: var(--surface);
+  width: 100%;
+  max-width: 560px;
+  border-radius: 14px 14px 0 0;
+  padding: 24px 20px calc(22px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
+  border-top: 4px dashed var(--border);
+}
+.sheet h2 {
+  font-size: 1.7rem;
+  color: var(--primary-dark);
+  margin-bottom: 6px;
+}
+.sheet p.lead {
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  margin-bottom: 14px;
+  font-family: var(--font-patrick), cursive;
+}
+select#nameSelect,
+.finput {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 4px;
+  border: 2px solid var(--border);
+  font-family: var(--font-patrick), cursive;
+  font-size: 1rem;
+  background: var(--surface-alt);
+  color: var(--ink);
+}
+.finput::placeholder {
+  color: var(--ink-soft);
+}
+textarea.finput {
+  resize: vertical;
+}
+.sheet .go {
+  margin-top: 14px;
+  width: 100%;
+  background: var(--primary);
+  color: #3a0a1e;
+  font-weight: 700;
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  padding: 13px;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  font-family: var(--font-caveat), cursive;
+  cursor: pointer;
+}
+
+/* header greet */
+.greet {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}

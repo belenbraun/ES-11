@@ -1,0 +1,20 @@
+{
+  "name": "La Gota de Alegría",
+  "short_name": "La Gota",
+  "description": "El fucking grupito de las pussies 💅",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF3E3",
+  "theme_color": "#E85A88",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
