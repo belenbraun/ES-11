@@ -1,6 +1,7 @@
 import Avatar from "@/components/Avatar";
-import { FEED, FORM_URL } from "@/lib/data";
-import type { FeedItemType } from "@/lib/types";
+import WeekActivities from "@/components/WeekActivities";
+import { FEED } from "@/lib/data";
+import type { FeedItemType, PilarId } from "@/lib/types";
 
 const BADGE: Record<FeedItemType, { label: string; className: string }> = {
   onthisday: { label: "Un día como hoy", className: "onthisday" },
@@ -8,9 +9,16 @@ const BADGE: Record<FeedItemType, { label: string; className: string }> = {
   chisme: { label: "Chisme / recuerdo", className: "chisme" },
 };
 
-export default function FeedTab({ active }: { active: boolean }) {
+export default function FeedTab({
+  active,
+  onRespond,
+}: {
+  active: boolean;
+  onRespond: (pilar: PilarId) => void;
+}) {
   return (
     <section id="tab-feed" className={active ? "active" : undefined}>
+      <WeekActivities onRespond={onRespond} />
       {FEED.map((item, i) => {
         const badge = BADGE[item.type];
         return (
@@ -25,9 +33,9 @@ export default function FeedTab({ active }: { active: boolean }) {
             </div>
             <p className="body">{item.text}</p>
             {item.cta && (
-              <a className="cta" href={FORM_URL} target="_blank" rel="noopener noreferrer">
+              <button type="button" className="cta" onClick={() => onRespond("cringe")}>
                 {item.cta} →
-              </a>
+              </button>
             )}
             {item.reactions && (
               <div className="reactions">

@@ -29,6 +29,18 @@ create table if not exists friends (
   fact text,
   photo_url text,
   avatar_color text,
+  -- ilustración estilo Pascualina/agenda (ver Belu en public/profiles/belu.jpg
+  -- del front) — se produce a mano/por encargo por persona, no es un upload
+  -- de usuaria; queda null hasta que se cargue la de cada una.
+  illustration_url text,
+  -- ficha editable desde "Mi Perfil" en cualquier momento (no solo onboarding)
+  apodo text,
+  hijos text,
+  palabra text,
+  secreto text,
+  electro text,
+  favorita text,
+  random_fact text,
   -- para el magic link / auth liviana: el mail de cada amiga
   email text unique,
   created_at timestamptz not null default now()
@@ -42,7 +54,10 @@ create table if not exists friends (
 create table if not exists posts (
   id uuid primary key default gen_random_uuid(),
   pillar text not null check (
-    pillar in ('onthisday', 'diario', 'recomendaciones', 'cringe', 'carta')
+    pillar in (
+      'onthisday', 'diario', 'recomendaciones', 'cringe', 'carta',
+      'encuesta', 'capsula', 'playlist'
+    )
   ),
   author_id uuid references friends (id) on delete set null,
   -- desnormalizado para no depender de un join al mostrar el feed
@@ -62,7 +77,7 @@ create table if not exists posts (
 -- ---------------------------------------------------------------
 create table if not exists anon_posts (
   id uuid primary key default gen_random_uuid(),
-  pillar text not null check (pillar in ('tea', 'premio_nominacion')),
+  pillar text not null check (pillar in ('tea', 'premio')),
   categoria text, -- solo para premio_nominacion, ej. "más cambiada del año"
   text_content text not null,
   posted_on date not null default current_date,
@@ -70,14 +85,22 @@ create table if not exists anon_posts (
 );
 
 -- ---------------------------------------------------------------
--- pillar_schedule: qué pilar toca y cuándo. Semilla = los 6 pilares
--- del brief. `cadence` queda configurable para poder pasar
--- "diario de la semana" de weekly a monthly sin tocar código.
+-- pillar_schedule: catálogo de actividades + cuáles están "confirmadas"
+-- (participan de la rotación de notificaciones) vs. "propuestas" (ideas
+-- nuevas, ver lib/activities.ts en el front, todavía sin activar).
+-- La rotación real (3 por semana) hoy vive como función pura en el
+-- front (lib/activities.ts::getWeekActivities) — cuando se conecte el
+-- cron de push, esa misma lógica pasa a leer de esta tabla.
+-- `cadence` queda configurable para poder pasar "diario de la semana"
+-- de weekly a monthly sin tocar código.
 -- ---------------------------------------------------------------
 create table if not exists pillar_schedule (
   id uuid primary key default gen_random_uuid(),
   pillar text not null unique check (
-    pillar in ('diario', 'recomendaciones', 'cringe', 'tea', 'carta', 'premio_nominacion')
+    pillar in (
+      'diario', 'recomendaciones', 'cringe', 'tea', 'carta', 'premio',
+      'encuesta', 'capsula', 'playlist'
+    )
   ),
   label text not null,
   emoji text,
@@ -85,17 +108,22 @@ create table if not exists pillar_schedule (
   cadence text not null default 'weekly' check (
     cadence in ('weekly', 'biweekly', 'monthly', 'adhoc')
   ),
+  -- confirmada (participa de la rotación) vs. propuesta (idea nueva, inactiva)
   active boolean not null default true
 );
 
-insert into pillar_schedule (pillar, label, emoji, weekday, cadence)
+insert into pillar_schedule (pillar, label, emoji, weekday, cadence, active)
 values
-  ('diario', 'Diario de la semana', '📓', 1, 'weekly'),
-  ('recomendaciones', 'Recomendaciones', '🍿', 2, 'weekly'),
-  ('cringe', 'Cringe challenge', '🤳', 3, 'weekly'),
-  ('tea', 'Spill the tea', '🍵', 5, 'weekly'),
-  ('carta', 'Carta a una pussie', '💌', null, 'adhoc'),
-  ('premio_nominacion', 'Premios', '🏆', null, 'adhoc')
+  ('diario', 'Diario de la semana', '📓', 1, 'weekly', true),
+  ('recomendaciones', 'Recomendaciones', '🍿', 2, 'weekly', true),
+  ('cringe', 'Cringe challenge', '🤳', 3, 'weekly', true),
+  ('tea', 'Spill the tea', '🍵', 5, 'weekly', true),
+  ('carta', 'Carta a una pussie', '💌', null, 'adhoc', true),
+  ('premio', 'Premios', '🏆', null, 'adhoc', true),
+  -- propuestas nuevas (ver lib/activities.ts) — inactivas hasta confirmar
+  ('encuesta', 'Encuesta relámpago', '🗳️', null, 'adhoc', false),
+  ('capsula', 'Cápsula del tiempo', '📼', null, 'adhoc', false),
+  ('playlist', 'Playlist colectiva', '🎧', null, 'adhoc', false)
 on conflict (pillar) do nothing;
 
 -- ---------------------------------------------------------------

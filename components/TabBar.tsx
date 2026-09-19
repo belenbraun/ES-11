@@ -2,18 +2,17 @@ import type { TabKey } from "@/lib/types";
 
 const TABS: { key: TabKey; icon: string; label: string }[] = [
   { key: "feed", icon: "💧", label: "Feed" },
-  { key: "challenges", icon: "🎯", label: "Challenges" },
-  { key: "profiles", icon: "💅", label: "Pussies" },
+  { key: "profile", icon: "🙋‍♀️", label: "Mi perfil" },
+  { key: "pussies", icon: "💅", label: "Pussies" },
+  { key: "sumar", icon: "✍️", label: "Sumar" },
 ];
 
 export default function TabBar({
   active,
   onTab,
-  onAdd,
 }: {
   active: TabKey;
   onTab: (tab: TabKey) => void;
-  onAdd: () => void;
 }) {
   return (
     <nav className="tabbar">
@@ -28,10 +27,6 @@ export default function TabBar({
           {t.label}
         </button>
       ))}
-      <button type="button" onClick={onAdd}>
-        <span className="ic">✍️</span>
-        Sumar
-      </button>
     </nav>
   );
 }

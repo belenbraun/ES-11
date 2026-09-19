@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Avatar from "@/components/Avatar";
 import { FRIENDS } from "@/lib/data";
 
@@ -13,7 +14,19 @@ export default function ProfilesTab({ active }: { active: boolean }) {
           const pending = /^\(cargar/.test(f.name);
           return (
             <div className={`profile-card${pending ? " pending" : ""}`} key={f.name + i}>
-              <Avatar name={f.name} index={i} />
+              {f.illustrationUrl ? (
+                <div className="profile-illustration-wrap">
+                  <Image
+                    src={f.illustrationUrl}
+                    alt={f.name}
+                    fill
+                    sizes="140px"
+                    style={{ objectFit: "cover" }}
+                  />
+                </div>
+              ) : (
+                <Avatar name={f.name} index={i} />
+              )}
               <h3>{pending ? "¿Vos?" : f.name}</h3>
               <p>{f.fact || (pending ? "Falta cargar" : "")}</p>
             </div>

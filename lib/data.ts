@@ -1,17 +1,16 @@
-import type { FeedItem, Friend, Pilar } from "./types";
+import type { FeedItem, Friend } from "./types";
 
 // ---------------------------------------------------------------
 // CONTENIDO — portado 1:1 desde la versión Artifact (gota-de-alegria.html).
 // Esto sigue siendo data de ejemplo/seed hasta que se conecte Supabase
 // (ver supabase/schema.sql y el roadmap en el README). Reemplazar/ampliar
 // cuando lleguen las respuestas reales del form o se migren estas listas
-// a las tablas `friends` / `posts` / `pillar_schedule`.
+// a las tablas `friends` / `posts`.
+//
+// Los pilares/actividades semanales viven en lib/activities.ts (se
+// dejaron de mostrar como tab fija — ahora son la base de las
+// notificaciones rotativas).
 // ---------------------------------------------------------------
-
-export const FORM_URL = "https://forms.gle/REEMPLAZAR-CON-TU-LINK";
-// Form APARTE, sin ninguna pregunta de nombre/email — para que spill the tea
-// y las nominaciones a premios sean anónimas de verdad.
-export const TEA_FORM_URL = "https://forms.gle/REEMPLAZAR-CON-TU-LINK-ANONIMO";
 
 export const DEST_EMAIL = "belenbraun@gmail.com";
 
@@ -26,9 +25,15 @@ export const AVATAR_COLORS = [
 ];
 
 // Lista de las 22 — placeholder de ejemplo. Reemplazar con las reales
-// (o migrar a la tabla `friends` de Supabase).
+// (o migrar a la tabla `friends` de Supabase). Belu ya tiene su
+// ilustración estilo Pascualina — el resto queda pendiente de cargar
+// en el mismo estilo.
 export const FRIENDS: Friend[] = [
-  { name: "Belu", fact: "La que arrancó todo esto por mail hace mil años" },
+  {
+    name: "Belu",
+    fact: "La que arrancó todo esto por mail hace mil años",
+    illustrationUrl: "/profiles/belu.jpg",
+  },
   { name: "(cargar amiga 2)" },
   { name: "(cargar amiga 3)" },
   { name: "(cargar amiga 4)" },
@@ -74,72 +79,5 @@ export const FEED: FeedItem[] = [
     author: "Anónimo del grupo",
     when: "Ejemplo",
     text: "Este es un espacio para los chismes divertidos de toda la vida — lo que se cuentan cuando se ríen recordando viejas épocas. Cargá el primero desde 'Sumar'.",
-  },
-];
-
-// Pilares de contenido semanales — la cadencia fija de LA GOTA.
-// Cada pilar tiene su día sugerido + ejemplos de challenges dentro de ese pilar.
-// Estos mismos 6 pilares son las filas semilla de `pillar_schedule` en Supabase.
-export const PILARES: Pilar[] = [
-  {
-    dia: "Lunes",
-    tag: "Diario de la semana",
-    emoji: "📓",
-    desc: "Tipo diario íntimo: qué pasó la semana pasada. Arrancamos semanal — si se hace pesado, lo pasamos a mensual.",
-    ejemplos: [
-      "Un momento bueno y uno de mierda de tu semana.",
-      "Lo más random que te pasó de lunes a domingo.",
-    ],
-  },
-  {
-    dia: "Martes",
-    tag: "Recomendaciones",
-    emoji: "🍿",
-    desc: "Peli, serie, libro, podcast, lo que sea — algo que estás consumiendo y valga la pena.",
-    ejemplos: [
-      "Una serie que no podés parar de ver.",
-      "Un libro/podcast que te voló la cabeza últimamente.",
-    ],
-  },
-  {
-    dia: "Miércoles",
-    tag: "Cringe challenge",
-    emoji: "🤳",
-    desc: "Reto random, sin filtro. Se trata de reírse, no de quedar bien.",
-    ejemplos: [
-      "Selfie de lo que estás haciendo AHORA, tal cual estás.",
-      "Grabate cantando la primera canción que suene en tu playlist.",
-    ],
-  },
-  {
-    dia: "Viernes",
-    tag: "Spill the tea",
-    emoji: "🍵",
-    desc: "Chisme o confesión — 100% ANÓNIMO, nadie sabe quién lo mandó. Va por un buzón aparte, sin nombre.",
-    ejemplos: [
-      "Contá el recuerdo más random que tengas de otra persona del grupo — que adivinen quién es.",
-      "Confesá una mentira piadosa que le dijiste a alguna.",
-    ],
-  },
-  {
-    dia: "Rotativo",
-    tag: "Carta a una pussie",
-    emoji: "💌",
-    desc: "Dedicarle algo lindo (o una cargada con amor) a otra del grupo.",
-    ejemplos: [
-      "Decile a otra pussie algo que nunca le dijiste.",
-      "Contá por qué la sumaste al grupito en su momento.",
-    ],
-  },
-  {
-    dia: "Sin día fijo",
-    tag: "Premios",
-    emoji: "🏆",
-    desc: "Entregas esporádicas, cuando dan ganas. Categorías random votadas o elegidas por LA GOTA.",
-    ejemplos: [
-      "Premio a la más cambiada del año.",
-      "Premio a la mejor excusa para faltar a un plan.",
-      "Premio a la que más memes manda.",
-    ],
   },
 ];
